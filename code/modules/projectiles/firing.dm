@@ -92,3 +92,38 @@
 			Angle = angle
 	if(spread)
 		Angle += spread
+
+/obj/item/projectile/proc/preparePixelProjectile_offset(atom/target, var/turf/targloc, var/turf/curloc, mob/living/user, params, spread, var/offset_y, var/offset_x)	//For use with the pod, as it needs an offset loc, gun refers to left = 1, right = -1
+	loc = curloc
+	starting = curloc
+	yo = targloc.y - curloc.y
+	xo = targloc.x - curloc.x
+
+	if(params)
+		var/list/mouse_control = params2list(params)
+		if(mouse_control["icon-x"])
+			p_x = text2num(mouse_control["icon-x"])
+		if(mouse_control["icon-y"])
+			p_y = text2num(mouse_control["icon-y"])
+		if(mouse_control["screen-loc"])
+			//Split screen-loc up into X+Pixel_X and Y+Pixel_Y
+			var/list/screen_loc_params = splittext(mouse_control["screen-loc"], ",")
+
+			//Split X+Pixel_X up into list(X, Pixel_X)
+			var/list/screen_loc_X = splittext(screen_loc_params[1],":")
+			//Split Y+Pixel_Y up into list(Y, Pixel_Y)
+			var/list/screen_loc_Y = splittext(screen_loc_params[2],":")
+			var/x = text2num(screen_loc_X[1]) * world.icon_size + text2num(screen_loc_X[2]) - world.icon_size + (curloc.pixel_x) + offset_x
+			var/y = text2num(screen_loc_Y[1]) * world.icon_size + text2num(screen_loc_Y[2]) - world.icon_size + (curloc.pixel_y) + offset_y
+
+			//Calculate the "resolution" of screen based on client's view and world's icon size. This will work if the user can view more tiles than average.
+			var/screenview = (user.client.view * 2 + 1) * world.icon_size //Refer to http://www.byond.com/docs/ref/info.html#/client/var/view for mad maths
+
+			var/ox = round(screenview/2) //"origin" x
+			var/oy = round(screenview/2) //"origin" y
+			var/angle = Atan2(y - oy, x - ox)
+			Angle = angle
+	if(spread)
+		Angle += spread
+
+

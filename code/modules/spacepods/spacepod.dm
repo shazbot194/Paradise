@@ -1074,6 +1074,29 @@ obj/spacepod/proc/add_equipment(mob/user, var/obj/item/device/spacepod_equipment
 /obj/effect/landmark/spacepod/random/New()
 	..()
 
+/obj/spacepod/proc/click_action(atom/target, mob/user, params)
+	var/mob/living/carbon/occupant = pilot
+	if(!occupant || occupant != user )
+		return
+	if(user.incapacitated())
+		return
+	if(hatch_open)
+		to_chat(user,"<span class='warning'>The maintenance hatch is open.</span>")
+		return
+	if(!battery)
+		return
+	if(empcounter)
+		return
+	if(!equipment_system.weapon_system)
+		return
+	if(src == target)
+		return
+	var/dir_to_target = get_dir(src, target)
+	if(dir_to_target && !(dir_to_target & dir))//wrong direction
+		return
+	equipment_system.weapon_system.action(target, user, params)
+
+
 #undef DAMAGE
 #undef FIRE
 #undef WINDOW

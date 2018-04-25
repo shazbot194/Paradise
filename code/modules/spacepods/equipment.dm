@@ -1,3 +1,89 @@
+/obj/item/device/spacepod_equipment/weaponry/proc/action(target, user, params)
+	if(my_atom.next_firetime > world.time)
+		to_chat(usr, "<span class='warning'>Your weapons are recharging.</span>")
+		return
+
+	if(!my_atom.equipment_system || !my_atom.equipment_system.weapon_system)
+		to_chat(usr, "<span class='warning'>Missing equipment or weapons.</span>")
+		my_atom.verbs -= text2path("[type]/proc/fire_weapons")
+		return
+
+	if(!my_atom.battery.use(shot_cost))
+		to_chat(usr, "<span class='warning'>Insufficient charge to fire the weapons</span>")
+		return
+
+	var/turf/targloc = get_turf(target)
+	if(!targloc || !istype(targloc))
+		return 0
+
+	var/olddir
+	var/turf/firstloc
+	var/turf/secondloc
+	var/offset_x = 0
+	var/offset_y = 0
+	var/center
+	for(var/i = 0; i < shots_per; i++)
+		if(olddir != my_atom.dir)
+			switch(my_atom.dir)
+				if(NORTH)
+					firstloc = get_step(my_atom, NORTH)
+					secondloc = get_step(firstloc,EAST)
+					offset_x = 16
+					center = 90
+				if(SOUTH)
+					firstloc = get_turf(my_atom)
+					secondloc = get_step(firstloc,EAST)
+					offset_x = 16
+					center = 270
+				if(EAST)
+					firstloc = get_step(my_atom, EAST)
+					secondloc = get_step(firstloc,NORTH)
+					offset_y = 16
+					center = 0
+				if(WEST)
+					firstloc = get_turf(my_atom)
+					secondloc = get_step(firstloc,NORTH)
+					offset_y = 16
+					center = 180
+
+			olddir = dir
+			var/spread_a = round((rand() - 0.5) * variance)
+			var/spread_b = round((rand() - 0.5) * variance)
+			var/obj/item/projectile/A = new projectile_type(firstloc)
+			var/obj/item/projectile/B = new projectile_type(secondloc)
+			A.preparePixelProjectile_offset(target, targloc, firstloc, user, params, spread_a, offset_y, offset_x)
+			B.preparePixelProjectile_offset(target, targloc, secondloc, user, params, spread_b, -offset_y, -offset_x)
+
+//			projectiles--
+			to_chat(usr, "<span class='warning'>pew pew</span>")
+
+			if(can_fire(A, 1, center))
+				A.fire()
+				to_chat(usr, "<span class='warning'>Should work</span>")
+			else
+				to_chat(usr, "<span class='warning'>didn't work</span>")
+			if(can_fire(B, 0, center))
+				B.fire()
+			playsound(src, fire_sound, 50, 1)
+			sleep(cooldown)
+	my_atom.next_firetime = world.time + fire_delay		// To keep it in line with the other fire proc
+	sleep(2)		// For some reason it can fire twice without this
+	return
+
+/obj/item/device/spacepod_equipment/weaponry/proc/can_fire(var/obj/item/projectile/bullet, var/gun, var/center)
+	var/temp_ang = bullet.Angle
+	if(center == 0 & temp_ang > 180)
+		temp_ang = -(360 - temp_ang)
+	if(gun)
+		if(temp_ang > (center - arc_center) & temp_ang < (center + arc_side))
+			to_chat(usr, "<span class='warning'>In angle</span>")
+			return TRUE
+	else
+		if(temp_ang < (center + arc_center) & temp_ang > (center - arc_side))
+			return TRUE
+	to_chat(usr, "<span class='warning'>not in angle</span>")
+	return FALSE
+
 /obj/item/device/spacepod_equipment/weaponry/proc/fire_weapons()
 	if(my_atom.next_firetime > world.time)
 		to_chat(usr, "<span class='warning'>Your weapons are recharging.</span>")
@@ -82,7 +168,12 @@
 	var/shot_cost = 0
 	var/shots_per = 1
 	var/fire_sound
-	var/fire_delay = 15
+	var/fire_delay = 15		// smallest that is possible is 2 due to a sleep(2) being needed to prevent accidental spam
+	var/cooldown = 2
+	var/variance = 0		// spread, put in twice what you want, as it will be multiplided by -0.5 to 0.5
+	var/arc_center = 30		// angle limit to cockpit
+	var/arc_side = 60		// angle limit to the side
+
 
 /obj/item/device/spacepod_equipment/weaponry/taser
 	name = "disabler system"
