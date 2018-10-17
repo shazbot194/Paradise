@@ -171,6 +171,20 @@
 /obj/item/ammo_box/magazine/internal/shot/toy/tommygun
  	max_ammo = 10
 
+/obj/item/ammo_box/magazine/internal/cylinder/caseless
+
+/obj/item/ammo_box/magazine/internal/cylinder/caseless/rotate()
+	var/obj/item/ammo_casing/b = stored_ammo[1]
+	stored_ammo.Cut(1,2)
+	if(b && !b.BB)
+		b = null
+	stored_ammo.Insert(0, b)
+
+/obj/item/ammo_box/magazine/internal/cylinder/caseless/toy
+	ammo_type = /obj/item/ammo_casing/caseless/foam_dart
+	caliber = "foam_force"
+	max_ammo = 7
+
 ///////////EXTERNAL MAGAZINES////////////////
 
 /obj/item/ammo_box/magazine/m10mm

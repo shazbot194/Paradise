@@ -116,3 +116,12 @@
 	item_state = "shotgun"
 	mag_type = /obj/item/ammo_box/magazine/internal/shot/toy/tommygun
 	w_class = WEIGHT_CLASS_SMALL
+
+/obj/item/gun/projectile/revolver/toy
+	name = "donksoft revolver"
+	desc = "A toy revolver suitable for law enforcment. Ages 8 and up."
+	icon = 'icons/obj/guns/toy.dmi'
+	icon_state = "nagant"
+	mag_type = /obj/item/ammo_box/magazine/internal/cylinder/caseless/toy
+	origin_tech = "combat=1;materials=1"
+
